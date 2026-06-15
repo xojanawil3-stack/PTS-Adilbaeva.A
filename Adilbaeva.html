@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programmalıq támiynat sapasın támiyinlew</title>
+    <style>
+        /* --- GLOBAL DESIGN SYSTEM & CYBERPUNK VARIABLES --- */
+        :root {
+            --bg-base: #030712;
+            --bg-surface: #0b1329;
+            --bg-surface-trans: rgba(11, 19, 41, 0.85);
+            --border-glow: rgba(139, 92, 246, 0.2);
+            --accent-violet: #8B5CF6;
+            --accent-cyan: #06B6D4;
+            --accent-emerald: #10B981;
+            --accent-amber: #F59E0B;
+            --accent-pink: #EC4899;
+            --text-main: #E2E8F0;
+            --text-muted: #94A3B8;
+            --sidebar-width: 340px;
+            --transition-fluid: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- MODERN SCROLLBAR --- */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-base); }
+        ::-webkit-scrollbar-thumb { background: linear-gradient(var(--accent-violet), var(--accent-cyan)); border-radius: 4px; }
+
+        /* --- FIXED SIDEBAR SYSTEM (JOYIDA QOTIB TURADIGAN) --- */
+        #sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-surface-trans);
+            backdrop-filter: blur(25px);
+            border-right: 1px solid var(--border-glow);
+            position: fixed;
+            top: 0; bottom: 0; left: 0;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition-fluid);
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-glow);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo-neon {
+            font-size: 1.3rem;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            background: linear-gradient(90deg, var(--accent-violet), var(--accent-cyan), var(--accent-pink));
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 4s linear infinite;
+        }
+
+        @keyframes gradientShift { to { background-position: 200% center; } }
+
+        .menu-list {
+            list-style: none;
+            overflow-y: auto;
+            flex: 1;
+            padding: 20px 16px;
+        }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 10px;
+            margin-bottom: 6px;
+            border-radius: 10px;
+            cursor: pointer;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: var(--transition-fluid);
+            border: 1px solid transparent;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            color: #FFF;
+            background: rgba(6, 182, 212, 0.08);
+            border-color: rgba(6, 182, 212, 0.4);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.15);
+            transform: translateX(6px);
+        }
+
+        /* --- MAIN VIEWPORT WITH INDEPENDENT SCROLL --- */
+        #main-viewport {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 40px;
+            min-width: 0;
+            transition: var(--transition-fluid);
+        }
+
+        /* --- MOBILE INTERFACE EXTENSIONS --- */
+        .mobile-header {
+            display: none;
+            background: var(--bg-surface);
+            padding: 16px 24px;
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 1100;
+            border-bottom: 1px solid var(--border-glow);
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .burger-btn {
+            background: none; border: none; color: #FFF; font-size: 1.8rem; cursor: pointer;
+        }
+
+        /* --- CONTROL UTILITY BAR --- */
+        .utility-bar {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 40px;
+            background: var(--bg-surface-trans);
+            padding: 16px 24px;
+            border-radius: 16px;
+            border: 1px solid var(--border-glow);
+            align-items: center;
+        }
+
+        .search-wrapper { flex: 1; }
+        .search-input {
+            width: 100%;
+            background: rgba(3, 7, 18, 0.6);
+            border: 1px solid var(--border-glow);
+            padding: 12px 16px;
+            border-radius: 10px;
+            color: #FFF;
+            font-size: 0.95rem;
+            transition: var(--transition-fluid);
+        }
+        .search-input:focus { outline: none; border-color: var(--accent-cyan); box-shadow: 0 0 15px rgba(6, 182, 212, 0.2); }
+
+        .stats-badge {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--accent-emerald);
+            padding: 10px 16px; border-radius: 10px;
+            font-size: 0.85rem; color: var(--accent-emerald); font-weight: 600;
+            white-space: nowrap;
+        }
+
+        /* --- 3D KINETIC RGB HOVER CARDS --- */
+        .module-section {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-glow);
+            border-radius: 24px;
+            padding: 40px;
+            margin-bottom: 45px;
+            position: relative;
+            z-index: 1;
+            transform-style: preserve-3d;
+            transition: transform 0.25s cubic-bezier(0.2, 1, 0.3, 1), box-shadow 0.4s ease;
+        }
+
+        .module-section::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            border-radius: 26px;
+            background: linear-gradient(45deg, #FF0055, #00FFCC, #9900FF, #FF0055);
+            background-size: 400%;
+            z-index: -2;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+            animation: auroraGlow 8s linear infinite;
+        }
+
+        .module-section::after {
+            content: ''; position: absolute; inset: 0;
+            background: var(--bg-surface); border-radius: 23px; z-index: -1;
+        }
+
+        .module-section:hover {
+            box-shadow: 0 30px 60px rgba(0, 245, 212, 0.12), 0 0 40px rgba(139, 92, 246, 0.15);
+        }
+
+        .module-section:hover::before { opacity: 1; }
+
+        @keyframes auroraGlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        h1.module-title {
+            font-size: 1.6rem; color: #FFF; margin-bottom: 20px;
+            background: linear-gradient(90deg, #FFF, var(--text-muted));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            transform: translateZ(40px);
+        }
+
+        .textbook-text {
+            font-size: 1.05rem; line-height: 1.8; color: #CBD5E1;
+            margin-bottom: 24px; text-align: justify;
+        }
+
+        .textbook-text strong { color: var(--accent-cyan); }
+
+        /* --- VECTOR GRAPHICS & LIVE ANIMATION REACTION --- */
+        .graphic-wrapper {
+            background: #040814; border: 1px dashed rgba(255,255,255,0.05);
+            border-radius: 16px; padding: 30px; margin: 24px 0;
+            display: flex; justify-content: center; align-items: center;
+        }
+        
+        .graphic-wrapper svg { transition: var(--transition-fluid); max-width: 100%; height: auto; }
+        .module-section:hover .graphic-wrapper svg { transform: scale(1.05) rotate(0.5deg); }
+        .module-section:hover .pulse-node { animation: livePulse 2s infinite ease-in-out; }
+
+        @keyframes livePulse {
+            0%, 100% { r: 6; fill: var(--accent-cyan); filter: drop-shadow(0 0 4px var(--accent-cyan)); }
+            50% { r: 12; fill: var(--accent-pink); filter: drop-shadow(0 0 12px var(--accent-pink)); }
+        }
+
+        /* --- EXERCISE & SOLUTION ARCHITECTURE --- */
+        .exercise-box {
+            background: rgba(16, 185, 129, 0.01);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+            border-radius: 16px; padding: 24px; margin-top: 24px;
+            transform: translateZ(25px); transition: var(--transition-fluid);
+        }
+
+        .module-section:hover .exercise-box {
+            border-color: var(--accent-emerald); background: rgba(16, 185, 129, 0.04);
+        }
+
+        .exercise-header {
+            font-weight: 700; font-size: 1.05rem; color: var(--accent-emerald);
+            margin-bottom: 12px; display: flex; align-items: center; gap: 10px;
+        }
+
+        .code-container {
+            background: #02050c; padding: 16px; border-radius: 10px;
+            font-family: 'Consolas', 'Fira Code', monospace; font-size: 0.85rem;
+            color: #A7F3D0; border: 1px solid rgba(255,255,255,0.02); margin: 14px 0;
+            overflow-x: auto;
+        }
+
+        .action-btn {
+            background: linear-gradient(90deg, var(--accent-violet), var(--accent-cyan));
+            border: none; color: #FFF; padding: 10px 20px; border-radius: 8px;
+            cursor: pointer; font-weight: 600; transition: var(--transition-fluid);
+        }
+        .action-btn:hover { box-shadow: 0 0 25px rgba(6, 182, 212, 0.4); transform: translateY(-2px); }
+
+        .solution-drawer {
+            display: none; margin-top: 18px; padding-top: 18px;
+            border-top: 1px dashed rgba(255,255,255,0.1);
+            color: #E2E8F0; line-height: 1.7; font-size: 0.95rem;
+        }
+
+        /* --- LIVE COMPUTATION APP BLOCKS --- */
+        .interactive-app {
+            background: rgba(6, 182, 212, 0.02); border: 1px solid rgba(6, 182, 212, 0.15);
+            border-radius: 16px; padding: 24px; margin: 24px 0;
+        }
+        .app-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px; }
+        .app-inputs input {
+            background: #02050c; border: 1px solid var(--border-glow);
+            padding: 12px; border-radius: 8px; color: #fff; font-size: 0.95rem;
+        }
+        .bva-visual-flex { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+        .bva-pill {
+            background: #02050c; border: 1px solid var(--accent-cyan);
+            padding: 8px 14px; border-radius: 6px; font-weight: bold; color: var(--accent-cyan); font-size: 0.9rem;
+        }
+
+        .matrix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .matrix-pane { background: rgba(255,255,255,0.02); border: 1px solid var(--border-glow); padding: 20px; border-radius: 12px; }
+        .matrix-pane h3 { color: var(--accent-cyan); font-size: 1.1rem; margin-bottom: 8px; }
+
+        .badge-line { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0; }
+        .badge-neon { background: #02050c; border: 1px solid var(--accent-pink); padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; color: var(--accent-pink); }
+
+        /* --- RESPONSIVE MEDIA QUERIES --- */
+        @media (max-width: 1024px) {
+            #sidebar { transform: translateX(-100%); }
+            #sidebar.open { transform: translateX(0); }
+            #main-viewport { margin-left: 0; padding: 100px 16px 40px 16px; }
+            .mobile-header { display: flex; }
+            .utility-bar { flex-direction: column; align-items: stretch; }
+            .app-inputs, .matrix-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-header">
+        <div class="logo-neon">PTS</div>
+        <button class="burger-btn" onclick="toggleMobileMenu()">☰</button>
+    </div>
+
+    <aside id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-neon">Programmalıq támiynat sapasın támiyinlew</div>
+        </div>
+        <ul class="menu-list" id="menu-engine"></ul>
+    </aside>
+
+    <main id="main-viewport">
+        
+        <div class="utility-bar">
+            <div class="search-wrapper" style="width: 100%;">
+                <input type="text" class="search-input" id="global-search" placeholder="15 modul boyinsha aqıllı global izlew..." oninput="smartFuzzySearch()">
+            </div>
+            <div class="stats-badge">Temalar processi: <span id="prog-stat">0 / 15</span></div>
+        </div>
+
+        <div id="textbook-container">
+
+            <section class="module-section" id="mod-1">
+                <h1 class="module-title">1. Sapa támiyinlew usılları. Ónim hám Process sapası</h1>
+                <p class="textbook-text">
+                    <strong>Quality Assurance (QA)</strong> — bul programmalıq támiynattı islep shıǵıw processlerin (SDLC) rejelestiriw, sistemalastırıw hám monitoring etiw arqalı juwmaqlawshı ónim sapasın kepilleytuǵın proaktiv kózqaras bolıp tabıladı. Ol qátelerdiń aldın alıwǵa qaratılǵan. Sapa eki úlken kriteriyalar toparına bólinedi:
+                    <br><br>
+                    1. <strong>Ónim sapası (Product Quality):</strong> Juwmaqlawshı programmanıń funkcionalligi, qáwipsizligi hám ónimdarlıǵı.<br>
+                    2. <strong>Process Quality (Jarayon sapası):</strong> Kod jaziw mádeniyatı, CI/CD integraciyası, analizler hám metodologiyalardın turaqlılıǵı.
+                </p>
+                <div class="graphic-wrapper">
+                    <svg width="400" height="150" viewBox="0 0 400 150">
+                        <circle cx="80" cy="75" r="55" fill="none" stroke="#8B5CF6" stroke-width="3" stroke-dasharray="6"/>
+                        <text x="65" y="80" fill="#8B5CF6" font-weight="bold" font-size="14">QA</text>
+                        <circle cx="200" cy="75" r="45" fill="none" stroke="#06B6D4" stroke-width="3"/>
+                        <text x="185" y="80" fill="#06B6D4" font-weight="bold" font-size="14">QC</text>
+                        <circle cx="310" cy="75" r="30" fill="none" stroke="#10B981" stroke-width="2"/>
+                        <text x="290" y="80" fill="#10B981" font-weight="bold" font-size="12">Testing</text>
+                    </svg>
+                </div>
+                <div class="exercise-box">
+                    <div class="exercise-header">💼 Islep shıǵarıw máselesi</div>
+                    <p>Fintex joybarında hár saparı maǵlıwmatlar bazası jańalanǵanda tranzakciyalar tómenlemekte. Testerler qáteni anıqladı, biraq ol dúzetilgende, sistemanıń basqa bóliminde jańa qáte shıqtı. Process dárejesinde (QA) buni qalay dúzeysiz?</p>
+                    <button class="action-btn" onclick="openVault(this)">Sheshimin kóriw</button>
+                    <div class="solution-drawer">
+                        Mashqala procestiń reaktivliginde. QA injeneri sipatında CI/CD pipeline sistemasına **Automated Integration & Regression Gates** mexanizmin qosıw kerek. Kod master tarmaqqa qosılıwınan aldın avtomatlastırılgan júklew (Performance) hám regressiv testlerden 100% tabıslı ótiwi shárt etip belgilenedi.
+                    </div>
+                </div>
+            </section>
+
+            <section class="module-section" id="mod-2">
+                <h1 class="module-title">2. Programmalıq támiynat sapasın qadaǵalaw basqıshları.</h1>
+                <p class="textbook-text">
+                    <strong>Quality Control (QC)</strong> — tayar ónimniń specifikaciya hám talaplarǵa muwapıqlıǵın tekseriwshi reaktiv process. Onıń ómirlik cikli tómendegi qatań basqıshlardan ibarat: Talaplar analizi (Requirements Analysis) &rarr; Testlerdi rejelestiriw (Test Planning) &rarr; Test scenariylerin joybarlaw (Test Design) &rarr; Test ortalıǵın sazlaw (Environment Setup) &rarr; Testlerdi orinlaw (Test Execution) &rarr; Juwmaqlawshı esabat (Test Closure).
+                </p>
+                <div class="matrix-grid">
+                    <div class="matrix-pane"><h3>Entry Criteria (Kiriw kriteriyaları)</h3><p>Basqıshti baslaw ushin zárúr shártler (misalı, arxitektura hújjeti tolıq hám tastıyıqlangan boliwi).</p></div>
+                    <div class="matrix-pane"><h3>Exit Criteria (Shıǵıw kriteriyaları)</h3><p>Basqıshti tamamlangan dep esaplaw shártleri (máselen, barlıq áhmiyetli qáteler jabılģanlıǵı).</p></div>
+                </div>
+                <div class="exercise-box">
+                    <div class="exercise-header">💼 Ámeliy Keys</div>
+                    <p>Joybar menedjeri waqıt qısqalıǵı sebepli "Test dizayn" basqıshın ótkerip jiberiwdi buyırdı. Bunıń sistemalı aqıbeti qanday boladı?</p>
+                    <button class="action-btn" onclick="openVault(this)">Sheshimin kóriw</button>
+                    <div class="solution-drawer">
+                        Test-Dizaynsiz islengen testlew tártipsiz (Ad-hoc) bolip, programmanıń kútilmegen hám quramalı kombinaciyalı jolların (Edge cases) qamtıp almaydı. Nátiyjede óndiris (Production) ortalıǵında sistemalı arxitekturalıq buzılıwlar júzege keledi.
+                    </div>
+                </div>
+            </section>
+
+            <section class="module-section" id="mod-3">
+                <h1 class="module-title">3. Programmalıq támiynat nátiyjeliligi hám isenimliligi (MTBF, MTTR)</h1>
+                <p class="textbook-text">
+                    Sistemanıń isenimliligi onıń belgili waqıt aralıǵında nasazlıqlarsız isley alıw qábileti bolıp tabıladı. Ol **MTBF (Mean Time Between Failures) ** hám **MTTR (Mean Time To Repair) ** mánisleri arqalı xalıq aralıq formula tiykarında esaplanadı.
+                </p>
+                <div class="interactive-app">
+                    <div class="app-inputs">
+                        <input type="number" id="m3-mtbf" value="500" placeholder="MTBF (soat)" oninput="calcM3Engine()">
+                        <input type="number" id="m3-mttr" value="5" placeholder="MTTR (soat)" oninput="calcM3Engine()">
+                    </div>
+                    <div style="font-weight: bold; color: var(--accent-emerald);">Sistemanıń Haqiyqiy Availabilty Mánisi: <span id="m3-res">99.01%</span></div>
+                </div>
+                <div class="exercise-box">
+                    <div class="exercise-header">💼 Matematikalıq másele</div>
+                    <p>Klaster serveri 1200 saat isledi hám usi waqit ishinde 3 márte avariya júz berdi. Onı tiklewge jámi 9 saat jumsaldı. Sistema turaqlılıq koefficientin esaplań.</p>
+                    <button class="action-btn" onclick="openVault(this)">Sheshimin kóriw</button>
+                    <div class="solution-drawer">
+                        MTTR = 9 / 3 = 3 saat. MTBF = (1200 - 9) / 3 = 397 saat. Availability = (397 / (397 + 3)) * 100% = **99.25%**. Sistema joqarı dárejede isenimli.
+                    </div>
+                </div>
+            </section>
+
+            <section class="module-section" id="mod-4">
+                <h1 class="module-title">4. Makkoldiń sapa faktorı modeli.</h1>
+                <p class="textbook-text">
+                    1977-jili jaratılgan McCall modeli programmalıq támiynat sapasın úsh tiykarģi gorizont (kózqaras) boyinsha 11 faktorga ajiratadi: <strong>Product Operation</strong> (durıslıq, isenimlilik, nátiyjelilik, qáwipsizlik, paydalanıw qolaylıǵı), <strong>Product Revision</strong> (qollap-quwatlaw ańsatlıǵı, beyimlesiwsheńlik, testlenetuģınlıq) hám<strong>Product Transition</strong> (portativlik, qayta paydalanıwshılıq, integraciyalanıwshılıq).
+                </p>
+                <div class="graphic-wrapper">
+                    <svg width="400" height="130" viewBox="0 0 400 130">
+                        <path d="M 50 100 L 200 20 L 350 100 Z" fill="none" stroke="#EC4899" stroke-width="2.5"/>
+                        <text x="10" y="115" fill="#FFF" font-size="11">Operation</text>
+                        <text x="175" y="15" fill="#EC4899" font-size="12" font-weight="bold">McCall Modeli</text>
+                        <text x="175" y="115" fill="#FFF" font-size="11">Revision</text>
+                        <text x="320" y="115" fill="#FFF" font-size="11">Transition</text>
+                    </svg>
+                </div>
+                <div class="exercise-box">
+                    <div class="exercise-header">💼 Injenerlik máselesi</div>
+                    <p>Programmalıq ónim Linuxta júdá jaqsı islemekte, biraq oni Windows platformasına kóshiriwde kitapxanalar sáykes kelmedi. McCall modeline qaray qaysi faktor buzilgan?</p>
+                    <button class="action-btn" onclick="openVault(this)">Sheshimin kóriw</button>
+                    <div class="solution-drawer">
+                        Bul jerde **Product Transition** toparına kiriwshi **Portability** faktori buzılgan. Mashqalanı arxitekturalıq sheshiw ushin kodti platformadan ģárezsiz etiw (misalı, Docker konteynerlerinen paydalanıw) talap etiledi.
+                    </div>
+                </div>
+            </section>
+
+            <section class="module-section" id="mod-5">
+                <h1 class="module-title">5. Programmalıq támiynat sapasın muǵdarlıq bahalaw (McCabe Metric)</h1>
+                <p class="textbook-text">
+                    Tomas McCabe metodologiyası boyınsha, kodtıń logikalıq quramalılıǵı (Cyclomatic Complexity) programmadaǵı tarmaqlanıwlar sistemasın bahalaydı. Quramalılıq qanshelli joqarı bolsa, kodtı túsiniw hám testlew sonshelli qıyın boladı. Formula: $V (G) = Predicates + 1$.
+                </p>
+                <div class="exercise-box">
+                    <div class="exercise-header">💼 Kod quramalılıǵı máselesi</div>
+                    <p>Tómendegi funkciyanıń ciklomatikalıq quramalılıǵın esaplań hám oni 100% Branch Coverage menen qaplaw ushin neshe test-keys kerekligin tabiń:</p>
+                    <div class="code-container">
+function checkAccess(user) {
+    if (user.isVerified && user.hasLicense) {
+        if (user.role === "admin") {
+            return "Full";
+        } else {
+            return "Limited";
+        }
+    }
+    return "None";
+}
+                    </div>
+                    <button class="action-btn" onclick="openVault(this)">Sheshimin kóriw</button>
+                    <div class="solution-drawer">
+                        Kodtaǵı logikalıq shártler (predikatlar): 3 ('user.isVerified', 'user.hasLicense', 'user.role === "admin"').<br>
+                        Ciklomatikalıq quramalılıq: $V (G) = 3 + 1 = 4$.<br>
+                        Demek, kodtı tolıq qamtıp alıw ushın keminde **4 óz betinshe test-keys** jazılıwı shárt.
+                    </div>
+                </div>
+            </section>
+
+            <section class="module-section" id="mod-6">
+                <h1 class="module-title">6.ISO/IEC 25010 Sapa Kriteriyaları Standarti.</h1>
+                <p class="textbook-text">
+                    Xalıq aralıq <strong>ISO 25010</strong> standartı programmalıq ónim sapasın 8 tiykarģı xarakteristikaģa ajiratadı: Functional Suitability (Funkcional muwapıqlıq), Performance Efficiency (Nátiyjelilik), Compatibility (Iykemlesiwsheńlik), Usability (Qollanıw qolaylıǵı), Reliability (Isenimlilik), Security (Qáwipsizlik), Maintainability (Qollap-quwatlaw qolaylıǵı) hám Portability (Portativlik).
+                </p>
+                <div class="badge-line">
+                    <span class="badge-neon">Qáwipsizlik</span>
+                    <span class="badge-neon">Nátiyjelilik</span>
+                    <span class="badge-neon">Kodti qollap-quwatlaw</span>
+                    <span class="badge-neon">sáykeslik</span>
+                </div>
+                <div class="exercise-box">
+                    <div class="exercise-header">💼 Standart analizi</div>
+                    <p>Sistema paydalanıwshılardıń sırlı parollerin maǵlıwmatlar bazasında ashıq (shifrlanbaǵan) halda saqlamaqta. ISO 25010 nıń qaysı sub-atribut buzılǵan?</p>
+                    <button class="action-btn" onclick="openVault(this)">Sheshimin kóriw</button>
+                    <div class="solution-drawer">
+                        Bul **Security** atributiniń **Confidentiality** kishi ólshemine pútkilley qarama-qarsı. Parollar tezlik penen 'bcrypt' yamasa 'scrypt' kriptografiyalıq xeshlew algoritmleri arqalı duzlanıp (salt) shifrlanıwı kerek.
+                    </div>
+                </div>
+            </section>
+
+            <section class="module-section" id="mod-7">
+                <h1 class="module-title">7.Programmalıq támiynattı islep shıǵıw standartları (ISO 12207)</h1>
+                <p class="textbook-text">
+                    <strong>ISO/IEC 12207</strong> — programmalıq támiynattıń ómirlik cikli processlerin (Software Life Cycle Processes) tártipke salıwshı xalıqaralıq injenerlik arxitekturası standartı bolıp tabıladı. Ol proceslerdi birlemshi (Primary), shólkemlestiriwshilik (Organizational) hám qollap-quwatlawshı (Supporting) toparlarǵa ajıratadı hám joybardıń hújjetlestiriliwin qatań talap etedi.
+                </p>
+                <div class="exercise-box">
+                    <div class="exercise-header">💼 Standartlastırıw Keysi</div>
+                    <p>Medicinalıq kardiostimulyatorlar ushın baǵdarlama jazıp atırǵan jámáátte hesh qanday texnikalıq hújjetler hám test esabatları (Test Reports) júrgizilmey atır. Bul qaysı standart buzılıwı?</p>
+                    <button class="action-btn" onclick="openVault(this)">Sheshimin kóriw</button>
+                    <div class="solution-drawer">
+                        Bul jagday **ISO/IEC 12207** hám **IEEE 730 (Software Quality Assurance Plans) ** standartlarına pútkilley qayshi keledi. Insan salamatlıǵı hám qáwipsizligine baylanıslı sistemalarda hár bir basqısh hám onıń nátiyjeleri tolıq hújjetlestiriliwi shárt.
+                    </div>
+                </div>
+            </section>
+
+            <section class="module-section" id="mod-8">
+                <h1 class="module-title">8.Programmalıq támiynattı sertifikatlaw hám Úshinshi tárep auditi</h1>
+                <p class="textbook-text">
+                    Sertifikatlastırıw - ónim yamasa oni islep shigariw procesleri belgili bir xalıqaralıq texnikalıq hám huqiqiy normalarga (máselen, kiberqáwipsizlik qagıydaları) muwapıqlıǵın gárezsiz, úshinshi tárep auditorlıq shólkemi tárepinen rásmiy tastıyıqlawı.
+                </p>
+                <div class="exercise-box">
+                    <div class="exercise-header">💼 Auditorlik másele</div>
+                    <p>Bank qosımshası xalıqaralıq viza hám mastercard sistemalarına jalǵanıwı ushın qaysı májbúriy qáwipsizlik sertifikatınan ótiwi kerek?</p>
+                    <button class="action-btn" onclick="openVault(this)">Sheshimin kóriw</button>
+                    <div class="solution-drawer">
+                        Bank sistemaları májbúriy túrde **PCI-DSS (Payment Card Industry Data Security Standard) ** sertifikatınan ótiwi shárt. Ol paydalanıwshılardıń karta maǵlıwmatların qayta islew, uzatıw hám saqlaw qáwipsizligin qatań audit etedi.
+                    </div>
+                </div>
+            </section>
+
+            <section class="module-section" id="mod-9">
+                <h1 class="module-title">9.Uliwma sapa basqarıwı (TQM) hám Deming cikli</h1>
+                <p class="textbook-text">
+                    <strong>Total Quality Management (TQM)</strong> — bul shólkemdegi barlıq xızmetkerlerdiń qatnasıwı arqalı processler, ónimler hám xızmetlerdi turaqlı túrde jaqsılap barıwǵa tiykarlanǵan basqarıw filosofiyası bolıp esaplanadı. Onıń tiykarında Demingtiń úzliksiz aylanba esaplanǵan **PDCA (Plan-Do-Check-Act) ** cikli jatadı.
+                </p>
+                <div class="graphic-wrapper">
+                    <svg width="200" height="200" viewBox="0 0 200 200">
+                        <circle cx="100" cy="100" r="80" fill="none" stroke="#8B5CF6" stroke-width="4"/>
+                        <line x1="100" y1="20" x2="100" y2="180" stroke="#8B5CF6" stroke-width="2"/>
+                        <line x1="20" y1="100" x2="180" y2="100" stroke="#8B5CF6" stroke-width="2"/>
+                        <text x="45" y="60" fill="#FFF" font-weight="bold">PLAN</text>
+                        <text x="125" y="60" fill="#06B6D4" font-weight="bold">DO</text>
+                        <text x="35" y="145" fill="#EC4899" font-weight="bold">ACT</text>
+                        <text x="115" y="145" fill="#10B981" font-weight="bold">CHECK</text>
+                    </svg>
+                </div>
+                <div class="exercise-box">
+                    <div class="exercise-header">💼 Agile-TQM Keysi</div>
+                    <p>Scrum komandası sprint juwmaǵında retro jıynalıs ótkerip qátelerdi analizledi (Check), biraq keyingi sprintte tap sol bayaǵı qáteler tákirarlandı. PDCA nıń qaysı buwını aqqan?</p>
+                    <button class="action-btn" onclick="openVault(this)">Sheshimin kóriw</button>
+                    <div class="solution-drawer">
+                        Bul jerde **ACT (Háreket etiw/Standartlastırıw) basqıshı orınlanbaǵan. Anıqlanǵan kemshiliklerdi saplastırıw ushın keyingi sprint procesine jańa qatań texnikalıq sheklewler yamasa avtomatlastırılǵan tekseriw qaǵıydaları kirgiziliwi shárt edi.
+                    </div>
+                </div>
+            </section>
+
+            <section class="module-section" id="mod-10">
+                <h1 class="module-title">10. Óndiris procesiniń sapasın basqarıw hám Validaciya</h1>
+                <p class="textbook-text">
+                    Sapalıqtı tekseriw eki áhmiyetli procesten ibarat:
+                    <br><br>
+                    1. <strong>Verifikatsiya (Verification):</strong> "Ónimdi duris qurıp atırmız ba?" (Texnikalıq talaplarga, specifikaciyalarga muwapıqlıǵın tekseriw - statikalıq/dinamikalıq).<br>
+                    2. <strong>Validatsiya (Validation):</strong> "Tuwri ónimdi qurıp atırmız ba?" (Ónim aqırģi paydalanıwshınıń real zárúrlikleri hám biznes maqsetlerine sáykes keliwin tekseriw).
+                </p>
+                <div class="exercise-box">
+                    <div class="exercise-header">💼 Injenerlik máselesi</div>
+                    <p>Programma barlıq texnikalıq talaplar (SRS) tiykarında qátesiz jazıldı, biraq aqır-ayaǵında ol klient kútken biznes paydasın keltirmedi hám interfeysi paydalanıwshıǵa qolaysız dep tabıldı. Bul qaysı procestiń sácizligi?</p>
+                    <button class="action-btn" onclick="openVault(this)">Sheshimin kóriw</button>
+                    <div class="solution-drawer">
+                        Bul **Validation** procesiniń sátsizligi bolip tabıladı. Ónim texnikalıq jaqtan duris qurilgan bolsa da (Verifikaciya tabıslı), bazar hám qarıydar talaplarına sáykes kelmegen. Mashqalanı saplastırıw ushın joybardıń dáslepki basqıshlarınan baslap UAT (User Acceptance Testing) scenariylerin tartıw zárúr.
+                    </div>
+                </div>
+            </section>
+
+            <section class="module-section" id="mod-11">
+                <h1 class="module-title">11.Texnikalıq sapa basqarıwı hám CI/CD Geytleri</h1>
+                <p class="textbook-text">
+                    Texnikalıq sapanı basqarıw kod bazasındaǵı **Texnikalıq qarızdarlıqtı (Technical Debt) ** qadaǵalaw degeni. Buģan erisiw ushin zamanagóy DevOps konveerlerine statikalıq analizlew quralları (máselen, SonarQube) arqalı **Quality Gates** (Sapalılıq esikleri) ornatıladı.
+                </p>
+                <div class="exercise-box">
+                    <div class="exercise-header">💼 Texnik qarız máselesi</div>
+                    <p>Programmist waqit jetispewshiligi sebepli kodti "Copy-Paste" etip tákirarladı. Sistema isledi, biraq SonarQube sapa dárwazası kodtı master tarmaqqa qosıwdı blokladı. Nege?</p>
+                    <button class="action-btn" onclick="openVault(this)">Sheshimin kóriw</button>
+                    <div class="solution-drawer">
+                        Kodtıń tákirarlanıwı (Code Duplication) texnik qarzın asıradı hám programmanıń Maintainability (Qollap-quwatlanıwshılıq) koefficientin keskin túsiredi. Sapa Gate ornatilgan shek (máselen, max 3% duplikaciya) buzilgani ushin buildti toqtatqan. Kod refaktoring etiliwi shárt.
+                    </div>
+                </div>
+            </section>
+
+            <section class="module-section" id="mod-12">
+                <h1 class="module-title">12. CMMI (Capability Maturity Model Integration) modeli.</h1>
+                <p class="textbook-text">
+                    <strong>CMMI</strong> modeli kompaniyanıń injenerlik hám basqarıw processleriniń jetiklik dárejesin 5 ierarxiyalıq basqıshta belgileydi:
+                </p>
+                <div class="badge-line">
+                    <span class="badge-neon">1-dáreje: Dáslepki</span>
+                    <span class="badge-neon">2-dáreje: basqarıladı</span>
+                    <span class="badge-neon">3-dáreje: anıqlanǵan</span>
+                    <span class="badge-neon">4-dáreje: Quantitatively Managed (Muǵdarlı bahalanatuǵın)</span>
+                    <span class="badge-neon">5-dáreje: Optimizatsiya (turaqlı rawajlanıw)</span>
+                </div>
+                <div class="exercise-box">
+                    <div class="exercise-header">💼 Shólkemlestiriw auditi máselesi</div>
+                    <p>Kompaniyada joybarlardıń tabısı tek ǵana bir jetekshi "juldız" programmisttiń individual sheberligine baylanıslı, hesh qanday jazılǵan processler joq. CMMI boyınsha bul qaysı dáreje?</p>
+                    <button class="action-btn" onclick="openVault(this)">Sheshimin kóriw</button>
+                    <div class="solution-drawer">
+                        Bul kompaniya **CMMI Level 1 (Initial) ** dárejesinde ekenligin kórsetedi. Processler sistemalanbaǵan hám xızmetkerlerge baylanıslı bolıp, joqarı qáwipke ie. Keyingi basqıshqa ótiw ushın processlerdi hújjetlestiriw hám basqarıwdı engiziw zárúr.
+                    </div>
+                </div>
+            </section>
+
+            <section class="module-section" id="mod-13">
+                <h1 class="module-title">13. Shegaralıq analiz "Qara qutı" hám BVA Simulyatorı</h1>
+                <p class="textbook-text">
+                    <strong>Shegaralıq mánis analizi (BVA)</strong> —bul ekvivalentlik klasslarınıń shetki shegaraların tekseriwge arnalgan "qara quti" testlew texnikası bolip tabıladı. Ol shegaralıq noqatlardı qatań sistema tiykarında tekseriwge járdem beredi.
+                </p>
+                <div class="interactive-app">
+                    <div class="app-inputs">
+                        <input type="number" id="bva-min" value="18" placeholder="Min" oninput="generateBVAEngine()">
+                        <input type="number" id="bva-max" value="65" placeholder="Max" oninput="generateBVAEngine()">
+                    </div>
+                    <div class="bva-visual-flex" id="bva-output-pills"></div>
+                </div>
+                <div class="exercise-box">
+                    <div class="exercise-header">💼 Shegara analizi máselesi</div>
+                    <p>Paydalanıwshı parolı keminde 8, kóbi menen 16 belgiden ibarat bolıwı kerek. 3-noqatlı BVA texnikası boyinsha test mánislerin aniqlań.</p>
+                    <button class="action-btn" onclick="openVault(this)">Sheshimin kóriw</button>
+                    <div class="solution-drawer">
+                        BVA texnikasına qaray hárbir shegara ushin 3 noqat alınadı ($Boundary - 1, Boundary, Boundary + 1$).<br>
+                        Tómengi shegara (8) ushın: **7, 8, 9** uzınlıqtaǵı parollar.<br>
+                        Joqarǵı shegara (16) ushın: **15, 16, 17** uzınlıqtaǵı parollar. Jámi 6 kritikalıq test noqatı payda boladı.
+                    </div>
+                </div>
+            </section>
+
+            <section class="module-section" id="mod-14">
+                <h1 class="module-title">14. Testlerdi rejelestiriw hám Klassikalıq V-Model</h1>
+                <p class="textbook-text">
+                    <strong>V-Model</strong> — islep shıǵıw (shep qanat) hám testlew (oń qanat) basqıshlarınıń parallel hám simmetriyalı sáykeslik shınjırın kórsetedi. Bul modelde test scenariyları kod jazılıwınan aldın, sáykes keletuǵın dizayn basqıshlarında jobalanadı.
+                </p>
+                <div class="graphic-wrapper">
+                    <svg width="450" height="150" viewBox="0 0 450 150">
+                        <line x1="40" y1="20" x2="225" y2="120" stroke="#8B5CF6" stroke-width="3"/>
+                        <line x1="225" y1="120" x2="410" y2="20" stroke="#10B981" stroke-width="3"/>
+                        <text x="20" y="20" fill="#8B5CF6" font-size="10" font-weight="bold">High-Level Design</text>
+                        <text x="360" y="20" fill="#10B981" font-size="10" font-weight="bold">Integration Test</text>
+                        <circle class="pulse-node" cx="225" cy="120" r="8" fill="#EC4899"/>
+                        <line x1="120" y1="40" x2="330" y2="40" stroke="#94A3B8" stroke-dasharray="4 4"/>
+                    </svg>
+                </div>
+                <div class="exercise-box">
+                    <div class="exercise-header">💼 V-Model Arxitektura máselesi.</div>
+                    <p>Integraciyalıq test scenariyleri V-Modeldin aniq qaysi islep shigiw basqıshındaǵı texnikalıq specifikaciyalar tiykarında jazıladı?</p>
+                    <button class="action-btn" onclick="openVault(this)">Sheshimin kóriw</button>
+                    <div class="solution-drawer">
+                        V-Model arxitekturasına muwapıq, **Integraciya Testleri (Integration Testing) ** joybardıń **Sistema Arxitekturası hám Joqarı dárejeli Dizayn (High-Level Design / System Architecture) ** basqıshında jaratılgan hújjetler hám moduller aralıq interfeys specifikaciyaları tiykarında joybarlastırıladı.
+                    </div>
+                </div>
+            </section>
+
+            <section class="module-section" id="mod-15">
+                <h1 class="module-title">15. Sertifikatlastırıwdıń huqıqıy tiykarı hám SLA Shártnamaları</h1>
+                <p class="textbook-text">
+                    <strong>SLA (Servis dárejesi kelisimi)</strong> — bul IT-xızmet kórsetiwshi provayder hám qarıydar arasındaǵı baǵdarlamanıń islep shıǵarıwda kepillik berilgen turaqlılıq kórsetkishlerin (Uptime), óndirislik hám nasazlıqlardı saplastırıw múddetlerin qatań belgileytuǵın huqıqıy hám texnikalıq shártnama bolıp esaplanadı.
+                </p>
+                <div class="exercise-box">
+                    <div class="exercise-header">💼 Huqıqıy SLA máselesi</div>
+                    <p>Shártnamada bulutli xizmettiń islew kepilligi (Uptime SLA) 99.9% etip belgilengen. Eger bir ayda (720 saat) sistema 2 saat dawamında pútkilley islemey qalsa (Downtime), shártnama shártleri buzılǵan esaplanadı ma?</p>
+                    <button class="action-btn" onclick="openVault(this)">Sheshimin kóriw</button>
+                    <div class="solution-drawer">
+                        99.9% Uptime talabında bir ayda ruxsat etilgen maksimal toqtap qalıw waqtı (Downtime): $720 \times (1 - 0.999) = 0.72$ saattı (shama menen 43 minut) quraydı. Sistema 2 saat islemey qalģanı ushın **SLA shártleri qopal túrde buzılģan** hám provayder huqiqiy/finanslıq kompensaciya tólewge májbúr boladı.
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script>
+        // --- 15 DYNAMIC MODULES REGISTRY ---
+        const moduleRegistry = [
+            { id: "mod-1", label: "1. Sapa támiynatı hám usılları" },
+            { id: "mod-2", label: "2. Sapa qadaǵalawı basqıshları" },
+            { id: "mod-3", label: "3. Nátiyjelilik & MTBF, MTTR" },
+            { id: "mod-4", label: "4. McCall sapa modeli" },
+            { id: "mod-5", label: "5. McCabe Kvant analizi" },
+            { id: "mod-6", label: "6. ISO/IEC 25010 standartı." },
+            { id: "mod-7", label: "7. SDLC ISO 12207 Norması" },
+            { id: "mod-8", label: "8. Sertifikatlaw & Audit" },
+            { id: "mod-9", label: "9. TQM Basqarıwı & PDCA" },
+            { id: "mod-10", label: "10. Verifikatsiya & Validatsiya" },
+            { id: "mod-11", label: "11. Texnik qarz & CI/CD Gates" },
+            { id: "mod-12", label: "12. CMMI jetiklik modeli" },
+            { id: "mod-13", label: "13. Qara Qutı & BVA Texnikası" },
+            { id: "mod-14", label: "14. Test Plan & V-Model" },
+            { id: "mod-15", label: "15. Huqıqıy SLA normaları" }
+        ];
+
+        // --- SIDEBAR MENYUNI GENERATSIYA QILISH ---
+        const menuEngine = document.getElementById('menu-engine');
+        moduleRegistry.forEach((mod, index) => {
+            const item = document.createElement('li');
+            item.innerHTML = `
+                <a href="#${mod.id}" class="menu-item ${index === 0 ? 'active' : ''}" onclick="activateMenuNode(this)">
+                    <input type="checkbox" class="progress-chk" style="margin-right:10px; cursor:pointer;" onclick="trackProgress(event)">
+                    <span>${mod.label}</span>
+                </a>
+            `;
+            menuEngine.appendChild(item);
+        });
+
+        function activateMenuNode(element) {
+            document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+            element.classList.add('active');
+            if (window.innerWidth <= 1024) { toggleMobileMenu(); }
+        }
+
+        function toggleMobileMenu() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // --- PROGRESS TRACKER ---
+        function trackProgress(event) {
+            event.stopPropagation();
+            const checkedCount = document.querySelectorAll('.progress-chk:checked').length;
+            document.getElementById('prog-stat').innerText = `${checkedCount} / 15`;
+        }
+
+        // --- SOLUTIONS DRAWER ACTION ---
+        function openVault(button) {
+            const drawer = button.nextElementSibling;
+            if (drawer.style.display === "block") {
+                drawer.style.display = "none";
+                button.innerText = "Sheshimin kóriw";
+            } else {
+                drawer.style.display = "block";
+                button.innerText = "Sheshimdi jabıw";
+            }
+        }
+
+        // --- LIVE APP ENGINE: MODULE 3 ---
+        function calcM3Engine() {
+            const mtbf = parseFloat(document.getElementById('m3-mtbf').value) || 0;
+            const mttr = parseFloat(document.getElementById('m3-mttr').value) || 0;
+            if(mtbf <= 0 || mttr <= 0) return;
+            const avail = (mtbf / (mtbf + mttr)) * 100;
+            document.getElementById('m3-res').innerText = avail.toFixed(2) + "%";
+        }
+
+        // --- LIVE APP ENGINE: MODULE 13 (BVA) ---
+        function generateBVAEngine() {
+            const min = parseInt(document.getElementById('bva-min').value);
+            const max = parseInt(document.getElementById('bva-max').value);
+            const outputBox = document.getElementById('bva-output-pills');
+            if (isNaN(min) || isNaN(max) || min >= max) return;
+            outputBox.innerHTML = '';
+            const bvaPoints = [min - 1, min, min + 1, max - 1, max, max + 1];
+            bvaPoints.forEach(point => {
+                const pill = document.createElement('div');
+                pill.className = 'bva-pill';
+                pill.innerText = point;
+                outputBox.appendChild(pill);
+            });
+        }
+
+        // --- SMART GLOBAL FUZZY SEARCH ---
+        function smartFuzzySearch() {
+            const token = document.getElementById('global-search').value.toLowerCase();
+            document.querySelectorAll('.module-section').forEach(section => {
+                const searchableText = section.innerText.toLowerCase();
+                section.style.display = searchableText.includes(token) ? "block" : "none";
+            });
+        }
+
+        // --- 3D INTERACTIVE TILT ANIMATION ---
+        document.querySelectorAll('.module-section').forEach(card => {
+            card.addEventListener('mousemove', (event) => {
+                const bounds = card.getBoundingClientRect();
+                const mouseX = event.clientX - bounds.left;
+                const mouseY = event.clientY - bounds.top;
+                const midX = bounds.width / 2;
+                const midY = bounds.height / 2;
+                const tiltX = ((midY - mouseY) / midY) * 3;
+                const tiltY = ((mouseX - midX) / midX) * 3;
+                card.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg) translateY(-4px)`;
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = `rotateX(0deg) rotateY(0deg) translateY(0px)`;
+            });
+        });
+
+        window.onload = () => { generateBVAEngine(); };
+    </script>
+</body>
+</html>
